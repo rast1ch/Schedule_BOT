@@ -30,6 +30,8 @@ schedule = service.spreadsheets().values().get(
         spreadsheetId = spreadsheet_id,
         range = "A1:C500",
         majorDimension = 'ROWS').execute()['values']
+
+print(schedule)
 day_schedule = []
 data = 0
 callback = []
@@ -119,6 +121,10 @@ def callback_data(call):
     elif call.data == 'admin_chosegroup':
         msg = bot.send_message(call.message.chat.id, "Введите номер(название группы)")
         bot.register_next_step_handler(msg, chose_group)
+    elif call.data == 'admin_deletegroup':
+        print(1)
+        msg = bot.send_message(call.message.chat.id, "Введите номер(название группы)")
+        bot.register_next_step_handler(msg, delete_group)
     elif call.data == 'change_pair1':
         callback = [data, 1]
     elif call.data == 'change_pair2':
@@ -160,9 +166,36 @@ def create_group(message):
         {'range': "A1:A500",
         'majorDimension' : 'COLUMNS',
         'values': [groups]}]}).execute()
+    groups = service.spreadsheets().values().get(
+        spreadsheetId = spreadsheet_id,
+        range = "A1:A500",
+        majorDimension = 'COLUMNS').execute()['values'][0]
     bot.send_message(message.from_user.id, "Группа была успешна добавлена")
     bot.register_next_step_handler(admin_message, admin_panel)
 
+def delete_group(message):
+    global groups, schedule
+    z = 0
+    if message.text not in groups:
+        bot.send_message(message.from_user.id, "Проверьте правильность ввода номера группы")
+    else:
+        while z <len(groups):
+            if message.text == groups[z]:
+                schedule[z] = [""]
+                print(schedule[z])
+                groups.pop(z)
+                service.spreadsheets().values().batchUpdate(
+                    spreadsheetId = spreadsheet_id,
+                    body = {
+                    'valueInputOption':'USER_ENTERED',
+                    'data': [
+                    {'range': "A1:C500",
+                    'majorDimension' : 'ROWS',
+                    'values': schedule}]}).execute()
+                print(schedule)
+                bot.send_message(message.from_user.id, "Удаление успешно")
+                break
+            z+=1
 
 def chose_group(message):
     global groups, admin_message, schedule, day_schedule, data
@@ -186,11 +219,6 @@ def chose_group(message):
                     'values': schedule}]}).execute()
                 j=0
             bot.send_message(message.from_user.id, f"Группа номер {message.text}")
-            #if schedule[i][1] == ' , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , ':
-                #bot.send_message(message.from_user.id, "На числитель пока расписания нет")
-                #if schedule[i][2] == ' , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , , ':
-                    #bot.send_message(message.from_user.id, "На знаменатель пока расписания нет")
-            #else:
             k =0
             l =0
             days = ["Понедельник","Вторник","Среда","Четверг","Пятница"]
@@ -246,6 +274,10 @@ def change(message):
             {'range': "A1:C500",
             'majorDimension' : 'ROWS',
             'values': schedule}]}).execute()
+        schedule = service.spreadsheets().values().get(
+        spreadsheetId = spreadsheet_id,
+        range = "A1:C500",
+        majorDimension = 'ROWS').execute()['values']
         day_schedule= []
         callback =[]
         data = 0
