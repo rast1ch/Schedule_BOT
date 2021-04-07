@@ -2,8 +2,10 @@
 import apiclient.discovery
 import httplib2
 # ------------------------------------------------------------
-import telebot
 from oauth2client.service_account import ServiceAccountCredentials
+import telebot
+import datetime
+
 
 
 
@@ -30,8 +32,7 @@ schedule = service.spreadsheets().values().get(
         spreadsheetId = spreadsheet_id,
         range = "A1:C500",
         majorDimension = 'ROWS').execute()['values']
-
-print(schedule)
+usr = {}
 day_schedule = []
 data = 0
 callback = []
@@ -67,6 +68,16 @@ schedule_change_thur_4 = telebot.types.InlineKeyboardMarkup()
 schedule_change_thur_4.add(telebot.types.InlineKeyboardButton(text = "Изменить Пару", callback_data = 'change_pair9'))
 schedule_change_fri_5 = telebot.types.InlineKeyboardMarkup()
 schedule_change_fri_5.add(telebot.types.InlineKeyboardButton(text = "Изменить Пару", callback_data = 'change_pair10'))
+
+
+
+
+#---------------------WORK_WITH_TIME--------------------------
+dif = datetime.datetime.now() - datetime.datetime(2020, 9, 1)
+dif = dif.days//7
+today = datetime.datetime.now().weekday()
+
+
 # --------------------CREATING_BOT----------------------------
 bot = telebot.TeleBot('1795577258:AAGOp6HC5mfZfwQ5vd6jL5LxkHN-Py-pxiI')
 
@@ -75,7 +86,7 @@ bot = telebot.TeleBot('1795577258:AAGOp6HC5mfZfwQ5vd6jL5LxkHN-Py-pxiI')
 @bot.message_handler(commands = ['start'])
 def start_message(message):
     if message.text == '/start':
-        bot.send_message(message.from_user.id, "Выберите пожалуйста группу. Если возникают вопросы, можно прописать /help")    
+        bot.send_message(message.from_user.id, "Для выбора класса пропишите /choose и /show для показа рассписания. Нужно сменить класс, пиши /change. Если возникают вопросы, можно прописать /help")    
 
 
 
@@ -101,7 +112,69 @@ def admin_panel(message):
             bot.send_message(message.from_user.id, "Admin is logged in")
     
 
+@bot.message_handler(commands = ['choose'])
+def usr_choose(message):
+    msg = bot.send_message(message.from_user.id,"Напишите номер класса в формате(*)")
+    bot.register_next_step_handler(msg, usr_choice)
 
+def usr_choice(message):
+    global groups
+    if message.text in groups:
+        usr[str(message.from_user.id)] = message.text
+        bot.send_message(message.from_user.id, "Вы успешно подключены")
+    else:
+        bot.send_message(message.from_user.id, "Проверьте правильность ввода номера класса")
+
+
+@bot.message_handler(commands = ['show'])
+def usr_showing(message):
+    global usr, dif, today, groups , schedule, day_schedule
+    if str(message.from_user.id) in usr.keys():
+        if dif%2 == 0:
+            k = 0
+            days = ["Понедельник","Вторник","Среда","Четверг","Пятница"]
+            for x in schedule[groups.index(usr[str(message.from_user.id)])][1:]:
+                day_schedule.append(x.split(','))
+            bot.send_message(message.from_user.id, "Рассписание на числитель")
+            l = 0
+            for x in days:
+                if l == today:
+                    bot.send_message(message.from_user.id, f"Сегодня\n\t1) {day_schedule[0][k]}\n\t2) {day_schedule[0][k+1]}\n\t3) {day_schedule[0][k+2]}\n\t4) {day_schedule[0][k+3]}\n\t5) {day_schedule[0][k+4]}\n\t6) {day_schedule[0][k+5]}\n\t7) {day_schedule[0][k+6]}\n\t8) {day_schedule[0][k+7]}")
+                else:
+                    bot.send_message(message.from_user.id, f"{x}\n\t1) {day_schedule[0][k]}\n\t2) {day_schedule[0][k+1]}\n\t3) {day_schedule[0][k+2]}\n\t4) {day_schedule[0][k+3]}\n\t5) {day_schedule[0][k+4]}\n\t6) {day_schedule[0][k+5]}\n\t7) {day_schedule[0][k+6]}\n\t8) {day_schedule[0][k+7]}")
+                k+=8
+            k = 0
+        else:
+            k = 0
+            days = ["Понедельник","Вторник","Среда","Четверг","Пятница"]
+            for x in schedule[groups.index(usr[str(message.from_user.id)])][1:]:
+                day_schedule.append(x.split(','))
+            bot.send_message(message.from_user.id, "Рассписание на числитель")
+            l = 0
+            for x in days:
+                if l == today:
+                    bot.send_message(message.from_user.id, f"Сегодня\n\t1) {day_schedule[1][k]}\n\t2) {day_schedule[1][k+1]}\n\t3) {day_schedule[1][k+2]}\n\t4) {day_schedule[1][k+3]}\n\t5) {day_schedule[1][k+4]}\n\t6) {day_schedule[1][k+5]}\n\t7) {day_schedule[1][k+6]}\n\t8) {day_schedule[1][k+7]}")
+                else:
+                    bot.send_message(message.from_user.id, f"{x}\n\t1) {day_schedule[1][k]}\n\t2) {day_schedule[1][k+1]}\n\t3) {day_schedule[1][k+2]}\n\t4) {day_schedule[1][k+3]}\n\t5) {day_schedule[1][k+4]}\n\t6) {day_schedule[1][k+5]}\n\t7) {day_schedule[1][k+6]}\n\t8) {day_schedule[1][k+7]}")
+                k+=8
+                l+=1
+        l = 0
+        k = 0
+    else:
+        bot.send_message(message.from_user.id, "Проверьте правльность номера класса")
+
+
+@bot.message_handler(commands = ['change'])
+def usr_changing(message):
+    msg = bot.send_message(message.from_user.id,"Для смены напишите номер класса в формате(*)")
+    bot.register_next_step_handler(msg, usr_change)
+
+def usr_change(message):
+    global groups
+    if message.text in groups:
+        usr[str(message.from_user.id)] = message.text
+    else:
+        bot.send_message(message.from_user.id, "Проверьте правильность ввода номера класса")
 
 
 
@@ -116,14 +189,14 @@ def start_message(message):
 def callback_data(call):
     global callback, data
     if call.data == 'admin_creategroup':
-        msg = bot.send_message(call.message.chat.id, "Введите номер(название группы)")
+        msg = bot.send_message(call.message.chat.id, "Введите номер(название класса)")
         bot.register_next_step_handler(msg, create_group)
     elif call.data == 'admin_chosegroup':
-        msg = bot.send_message(call.message.chat.id, "Введите номер(название группы)")
+        msg = bot.send_message(call.message.chat.id, "Введите номер(название класса)")
         bot.register_next_step_handler(msg, chose_group)
     elif call.data == 'admin_deletegroup':
         print(1)
-        msg = bot.send_message(call.message.chat.id, "Введите номер(название группы)")
+        msg = bot.send_message(call.message.chat.id, "Введите номер(название класса)")
         bot.register_next_step_handler(msg, delete_group)
     elif call.data == 'change_pair1':
         callback = [data, 1]
@@ -232,8 +305,6 @@ def chose_group(message):
                 l+=1
             k = 0
             bot.send_message(message.from_user.id, "Рассписание на знаментель")
-            print(len(day_schedule[0]))
-            print(len(markups))
             for x in days:
                 bot.send_message(message.from_user.id, f"{x}\n\t1) {day_schedule[1][k]}\n\t2) {day_schedule[1][k+1]}\n\t3) {day_schedule[1][k+2]}\n\t4) {day_schedule[1][k+3]}\n\t5) {day_schedule[1][k+4]}\n\t6) {day_schedule[1][k+5]}\n\t7) {day_schedule[1][k+6]}\n\t8) {day_schedule[1][k+7]}",reply_markup = markups[l])
                 k+=8
