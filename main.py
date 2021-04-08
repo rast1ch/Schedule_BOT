@@ -161,7 +161,7 @@ def usr_showing(message):
         l = 0
         k = 0
     else:
-        bot.send_message(message.from_user.id, "Проверьте правльность номера класса")
+        bot.send_message(message.from_user.id, "Сначала нужно подключиться (/choose)")
 
 
 @bot.message_handler(commands = ['change'])
