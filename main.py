@@ -33,6 +33,7 @@ schedule = service.spreadsheets().values().get(
         range = "A1:C500",
         majorDimension = 'ROWS').execute()['values']
 usr = {}
+mess = ''
 day_schedule = []
 data = 0
 callback = []
@@ -68,6 +69,10 @@ schedule_change_thur_4 = telebot.types.InlineKeyboardMarkup()
 schedule_change_thur_4.add(telebot.types.InlineKeyboardButton(text = "Изменить Пару", callback_data = 'change_pair9'))
 schedule_change_fri_5 = telebot.types.InlineKeyboardMarkup()
 schedule_change_fri_5.add(telebot.types.InlineKeyboardButton(text = "Изменить Пару", callback_data = 'change_pair10'))
+show_markup =  telebot.types.InlineKeyboardMarkup()
+show_markup.add(telebot.types.InlineKeyboardButton(text = "Сегодня", callback_data = 'today'))
+show_markup.add(telebot.types.InlineKeyboardButton(text = "Завтра", callback_data = 'tommorow'))
+show_markup.add(telebot.types.InlineKeyboardButton(text = "Всю неделю", callback_data = 'week'))
 
 
 
@@ -128,38 +133,13 @@ def usr_choice(message):
 
 @bot.message_handler(commands = ['show'])
 def usr_showing(message):
-    global usr, dif, today, groups , schedule, day_schedule
+    global usr, dif, today, groups , schedule, day_schedule, show_markup,mess
     if str(message.from_user.id) in usr.keys():
         if dif%2 == 0:
-            k = 0
-            days = ["Понедельник","Вторник","Среда","Четверг","Пятница"]
-            for x in schedule[groups.index(usr[str(message.from_user.id)])][1:]:
-                day_schedule.append(x.split(','))
-            bot.send_message(message.from_user.id, "Рассписание на числитель")
-            l = 0
-            for x in days:
-                if l == today:
-                    bot.send_message(message.from_user.id, f"Сегодня\n\t1) {day_schedule[0][k]}\n\t2) {day_schedule[0][k+1]}\n\t3) {day_schedule[0][k+2]}\n\t4) {day_schedule[0][k+3]}\n\t5) {day_schedule[0][k+4]}\n\t6) {day_schedule[0][k+5]}\n\t7) {day_schedule[0][k+6]}\n\t8) {day_schedule[0][k+7]}")
-                else:
-                    bot.send_message(message.from_user.id, f"{x}\n\t1) {day_schedule[0][k]}\n\t2) {day_schedule[0][k+1]}\n\t3) {day_schedule[0][k+2]}\n\t4) {day_schedule[0][k+3]}\n\t5) {day_schedule[0][k+4]}\n\t6) {day_schedule[0][k+5]}\n\t7) {day_schedule[0][k+6]}\n\t8) {day_schedule[0][k+7]}")
-                k+=8
-            k = 0
+            bot.send_message(message.from_user.id, "Рассписание на числитель", reply_markup = show_markup)
         else:
-            k = 0
-            days = ["Понедельник","Вторник","Среда","Четверг","Пятница"]
-            for x in schedule[groups.index(usr[str(message.from_user.id)])][1:]:
-                day_schedule.append(x.split(','))
-            bot.send_message(message.from_user.id, "Рассписание на числитель")
-            l = 0
-            for x in days:
-                if l == today:
-                    bot.send_message(message.from_user.id, f"Сегодня\n\t1) {day_schedule[1][k]}\n\t2) {day_schedule[1][k+1]}\n\t3) {day_schedule[1][k+2]}\n\t4) {day_schedule[1][k+3]}\n\t5) {day_schedule[1][k+4]}\n\t6) {day_schedule[1][k+5]}\n\t7) {day_schedule[1][k+6]}\n\t8) {day_schedule[1][k+7]}")
-                else:
-                    bot.send_message(message.from_user.id, f"{x}\n\t1) {day_schedule[1][k]}\n\t2) {day_schedule[1][k+1]}\n\t3) {day_schedule[1][k+2]}\n\t4) {day_schedule[1][k+3]}\n\t5) {day_schedule[1][k+4]}\n\t6) {day_schedule[1][k+5]}\n\t7) {day_schedule[1][k+6]}\n\t8) {day_schedule[1][k+7]}")
-                k+=8
-                l+=1
-        l = 0
-        k = 0
+            
+            bot.send_message(message.from_user.id, "Рассписание на числитель", reply_markup = show_markup)
     else:
         bot.send_message(message.from_user.id, "Сначала нужно подключиться (/choose)")
 
@@ -187,7 +167,7 @@ def start_message(message):
 
 @bot.callback_query_handler(func=lambda call: True)
 def callback_data(call):
-    global callback, data
+    global callback, data, groups,today,schedule,day_schedule, mess,dif
     if call.data == 'admin_creategroup':
         msg = bot.send_message(call.message.chat.id, "Введите номер(название класса)")
         bot.register_next_step_handler(msg, create_group)
@@ -198,6 +178,61 @@ def callback_data(call):
         print(1)
         msg = bot.send_message(call.message.chat.id, "Введите номер(название класса)")
         bot.register_next_step_handler(msg, delete_group)
+    elif call.data == 'today':
+        if today != 5 and today != 6:
+            days = ["Понедельник","Вторник","Среда","Четверг","Пятница"]
+            dif = datetime.datetime.now() - datetime.datetime(2020, 9, 1)
+            dif = dif.days//7
+            today = datetime.datetime.now().weekday()
+
+            for x in schedule[groups.index(usr[str(mess)])][1:]:
+                day_schedule.append(x.split(','))
+            k = today*8
+            d = dif%2
+            bot.send_message(call.message.chat.id, f"Сегодня\n{days[today]}\n\t1) {day_schedule[d][k]}\n\t2) {day_schedule[d][k+1]}\n\t3) {day_schedule[d][k+2]}\n\t4) {day_schedule[d][k+3]}\n\t5) {day_schedule[d][k+4]}\n\t6) {day_schedule[d][k+5]}\n\t7) {day_schedule[d][k+6]}\n\t8) {day_schedule[d][k+7]}")
+            day_schedule = []
+        else:
+            bot.send_message()
+
+
+    elif call.data == 'tommorow':
+        dif = datetime.datetime.now() - datetime.datetime(2020, 9, 1)
+        dif = dif.days//7
+        today = datetime.datetime.now().weekday()
+        if today!=4 and today!=5:
+            if today == 6:
+                today_t = 0
+            else:
+                today_t = today+1
+            days = ["Понедельник","Вторник","Среда","Четверг","Пятница"]
+            for x in schedule[groups.index(usr[str(mess)])][1:]:
+                day_schedule.append(x.split(','))
+            
+            k = today_t*8
+            d = dif%2
+            bot.send_message(call.message.chat.id, f"Завтра\n{days[today_t]}\n\t1) {day_schedule[d][k]}\n\t2) {day_schedule[d][k+1]}\n\t3) {day_schedule[d][k+2]}\n\t4) {day_schedule[d][k+3]}\n\t5) {day_schedule[d][k+4]}\n\t6) {day_schedule[d][k+5]}\n\t7) {day_schedule[d][k+6]}\n\t8) {day_schedule[d][k+7]}")
+            day_schedule = []
+
+    elif call.data == 'week':
+        l = 0
+        k = 0
+        dif = datetime.datetime.now() - datetime.datetime(2020, 9, 1)
+        dif = dif.days//7
+        today = datetime.datetime.now().weekday()
+        d = dif%2
+        days = ["Понедельник","Вторник","Среда","Четверг","Пятница"]
+        for x in schedule[groups.index(usr[str(mess)])][1:]:
+            day_schedule.append(x.split(','))
+        for x in days:
+            if l == today:
+                bot.send_message(call.message.chat.id, f"Сегодня\n\t1) {day_schedule[d][k]}\n\t2) {day_schedule[d][k+1]}\n\t3) {day_schedule[d][k+2]}\n\t4) {day_schedule[d][k+3]}\n\t5) {day_schedule[d][k+4]}\n\t6) {day_schedule[d][k+5]}\n\t7) {day_schedule[d][k+6]}\n\t8) {day_schedule[d][k+7]}")
+            else:
+                bot.send_message(call.message.chat.id, f"{x}\n\t1) {day_schedule[d][k]}\n\t2) {day_schedule[d][k+1]}\n\t3) {day_schedule[d][k+2]}\n\t4) {day_schedule[d][k+3]}\n\t5) {day_schedule[d][k+4]}\n\t6) {day_schedule[d][k+5]}\n\t7) {day_schedule[d][k+6]}\n\t8) {day_schedule[d][k+7]}")
+            k+=8
+            l+=1
+        l = 0
+        k = 0
+
     elif call.data == 'change_pair1':
         callback = [data, 1]
     elif call.data == 'change_pair2':
