@@ -11,8 +11,8 @@ import datetime
 
 
 # --------------------TOCKEN_SECTION--------------------------
-CREDINTIALS_FILE = 'schedulebot-309820-d28d74e84bf5.json' #'digitaljournal-dfd2c8f6cfe1.json'
-spreadsheet_id = '1LOqqZTEGSDfSDBfmxh32pmPwXOOlm-p0qiMtLlsoIFs'
+CREDINTIALS_FILE = 'lessons-310209-b87d5d9a460e.json'
+spreadsheet_id = '1MYG-s4DXvGknmoNXdXokZFU6s_MYwWecFE7glzGe6jQ'
 
 
 # --------------------CREATING_APIS---------------------------
@@ -84,7 +84,7 @@ today = datetime.datetime.now().weekday()
 
 
 # --------------------CREATING_BOT----------------------------
-bot = telebot.TeleBot('1795577258:AAGOp6HC5mfZfwQ5vd6jL5LxkHN-Py-pxiI')
+bot = telebot.TeleBot('1775964095:AAG9QAP2ziDNhHd5PaFcrnxlk6mQph1sdCk')
 
 
 
@@ -135,6 +135,7 @@ def usr_choice(message):
 def usr_showing(message):
     global usr, dif, today, groups , schedule, day_schedule, show_markup,mess
     if str(message.from_user.id) in usr.keys():
+        mess  = str(message.from_user.id)
         if dif%2 == 0:
             bot.send_message(message.from_user.id, "Рассписание на числитель", reply_markup = show_markup)
         else:
@@ -192,7 +193,7 @@ def callback_data(call):
             bot.send_message(call.message.chat.id, f"Сегодня\n{days[today]}\n\t1) {day_schedule[d][k]}\n\t2) {day_schedule[d][k+1]}\n\t3) {day_schedule[d][k+2]}\n\t4) {day_schedule[d][k+3]}\n\t5) {day_schedule[d][k+4]}\n\t6) {day_schedule[d][k+5]}\n\t7) {day_schedule[d][k+6]}\n\t8) {day_schedule[d][k+7]}")
             day_schedule = []
         else:
-            bot.send_message()
+            bot.send_message(call.message.chat.id,"Сегодня выходной")
 
 
     elif call.data == 'tommorow':
@@ -212,6 +213,8 @@ def callback_data(call):
             d = dif%2
             bot.send_message(call.message.chat.id, f"Завтра\n{days[today_t]}\n\t1) {day_schedule[d][k]}\n\t2) {day_schedule[d][k+1]}\n\t3) {day_schedule[d][k+2]}\n\t4) {day_schedule[d][k+3]}\n\t5) {day_schedule[d][k+4]}\n\t6) {day_schedule[d][k+5]}\n\t7) {day_schedule[d][k+6]}\n\t8) {day_schedule[d][k+7]}")
             day_schedule = []
+        else:
+            bot.send_message(call.message.chat.id, "Завтра выходной")
 
     elif call.data == 'week':
         l = 0
